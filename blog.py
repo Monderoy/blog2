@@ -1,5 +1,5 @@
-from flask import Flask, redirect, url_for, render_template, request, session, flash
 from datetime import timedelta, datetime
+from flask import Flask, redirect, url_for, render_template, request, session, flash
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
@@ -12,24 +12,30 @@ app.permanent_session_lifetime = timedelta(minutes=5)
 
 db = SQLAlchemy(app)
 
+
 # skapar ett unikt id (int) i en column i db
 class users(db.Model):
     _id = db.Column("id", db.Integer, primary_key=True)
     name = db.Column(db.String(100))
     email = db.Column(db.String(100))
-# tar bort värden som inte har ett värde? en obesvarad fråga?
+
+    # tar bort värden som inte har ett värde? en obesvarad fråga?
     def __init__(self, name, email):
         self.name = name
         self.email = email
+
+
 
 @app.route("/")
 def home():
     return render_template("index.html")
 
+
 # så vi kan se alla som har ett konto
 @app.route("/view")
 def view():
     return render_template("view.html", values=users.query.all())
+
 
 # skapar en login-ruta där man kan skriva in sin mail, spara i db som kan hämta tillbaka det första vi hittar i db
 
@@ -43,10 +49,11 @@ def login():
         found_user = users.query.filter_by(name=user).first()
         if found_user:
             session["email"] = found_user.email
+
         else:
-                usr = users(user, "")
-                db.session.add(usr)
-                db.session.commit()
+            usr = users(user, "")
+            db.session.add(usr)
+            db.session.commit()
 
         flash("login Succesful")
         return redirect(url_for("user"))
@@ -56,6 +63,7 @@ def login():
             return redirect(url_for("user"))
 
         return render_template("login.html")
+
 
 # vi hämtar tillbaka användarens namn och skriver ut det, är man inte inloggad skickas man till login
 # vi kollar i db efter mailen, fins den inte så sparas den
@@ -90,19 +98,22 @@ def logout():
     session.pop("email", None)
     return redirect(url_for("login"))
 
+# det vi postar hamnar i db
 class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100), nullable=False)
     content = db.Column(db.Text, nullable=False)
-    date_posted = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    author = db.Column(db.String(20), nullable=False)
+    author = db.Column(db.String(20), nullable=True)
+    date_posted = db.Column(db.String, nullable=True)
 
 @app.route("/blog")
 def blog():
     posts = Post.query.all()
     return render_template("blog.html", posts=posts)
 
-@app.route("/blog/new", methods=["GET", "POST"])
+
+# vi sparar en ny post i bloggen
+@app.route("/new_post", methods=["GET", "POST"])
 def new_post():
     if "user" not in session:
         flash("You need to log in before you can create a new post")
@@ -111,19 +122,17 @@ def new_post():
     if request.method == "POST":
         title = request.form["title"]
         content = request.form["content"]
-        author = request.form["auther"]
-        post = Post(title=title, content=content, author=author)
+        date_posted = datetime.now()
+        author = session["user"]
+        post = Post(title=title, content=content, date_posted=date_posted, author=author)
         db.session.add(post)
         db.session.commit()
         flash("New post created")
         return redirect(url_for("blog"))
     else:
-        return render_template("new_post:html")
+        return render_template("new_post.html")
 
 
-
-if __name__ =="__main__":
+if __name__ == "__main__":
     db.create_all()
     app.run(debug=True)
-
-
