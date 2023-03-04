@@ -1,5 +1,5 @@
 from flask import Flask, redirect, url_for, render_template, request, session, flash
-from datetime import timedelta
+from datetime import timedelta, datetime
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
@@ -89,6 +89,37 @@ def logout():
     session.pop("user", None)
     session.pop("email", None)
     return redirect(url_for("login"))
+
+class Post(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(100), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    date_posted = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    author = db.Column(db.String(20), nullable=False)
+
+@app.route("/blog")
+def blog():
+    posts = Post.query.all()
+    return render_template("blog.html", posts=posts)
+
+@app.route("/blog/new", methods=["GET", "POST"])
+def new_post():
+    if "user" not in session:
+        flash("You need to log in before you can create a new post")
+        return redirect(url_for("login"))
+
+    if request.method == "POST":
+        title = request.form["title"]
+        content = request.form["content"]
+        author = request.form["auther"]
+        post = Post(title=title, content=content, author=author)
+        db.session.add(post)
+        db.session.commit()
+        flash("New post created")
+        return redirect(url_for("blog"))
+    else:
+        return render_template("new_post:html")
+
 
 
 if __name__ =="__main__":
