@@ -14,17 +14,13 @@ db = SQLAlchemy(app)
 
 # skapar ett unikt id (int) i en column i db
 class users(db.Model):
-    _id = db.Column("id", db.Interger, primary_key=True)
-    name = db.Column(db.String(50))
+    _id = db.Column("id", db.Integer, primary_key=True)
+    name = db.Column(db.String(100))
     email = db.Column(db.String(100))
-
 # tar bort värden som inte har ett värde? en obesvarad fråga?
     def __init__(self, name, email):
         self.name = name
         self.email = email
-
-
-
 
 @app.route("/")
 def home():
@@ -33,7 +29,7 @@ def home():
 # så vi kan se alla som har ett konto
 @app.route("/view")
 def view():
-    return render_templates("view.html", values=users.query.all)
+    return render_template("view.html", values=users.query.all())
 
 # skapar en login-ruta där man kan skriva in sin mail, spara i db som kan hämta tillbaka det första vi hittar i db
 
@@ -47,10 +43,10 @@ def login():
         found_user = users.query.filter_by(name=user).first()
         if found_user:
             session["email"] = found_user.email
-         else:
-            usr = users(user, "")
-            db.session.add(usr)
-            db.sesssion.commit()
+        else:
+                usr = users(user, "")
+                db.session.add(usr)
+                db.session.commit()
 
         flash("login Succesful")
         return redirect(url_for("user"))
@@ -78,7 +74,7 @@ def user():
             flash("Email was saved")
         else:
             if "email" in session:
-                email = session ["email"]
+                email = session["email"]
 
         return render_template("user.html", email=email)
     else:
@@ -86,7 +82,7 @@ def user():
         return redirect(url_for("login"))
 
 
-# logga ut och skicka tillbaka till login
+# logga ut och skicka tillbaka till login, vi pop:ar den så emailen rensas
 @app.route("/logout")
 def logout():
     flash(f"You have been logged out", "info")
