@@ -1,0 +1,6 @@
+services:
+  web:
+    build: .
+    image: docker.io/monderoy/blog
+    ports:
+      - 80:80
