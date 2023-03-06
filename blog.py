@@ -1,11 +1,13 @@
 from datetime import timedelta, datetime
+
+
 from flask import Flask, redirect, url_for, render_template, request, session, flash
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 app.secret_key = "123456"
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.sqlite3'
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database/users.sqlite3'
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS="] = False
 
 # hur länge vi är inloggade
 app.permanent_session_lifetime = timedelta(minutes=5)

@@ -4,3 +4,5 @@ services:
     image: docker.io/monderoy/blog
     ports:
       - 80:80
+    volumes:
+      - "./database:/app/database"
